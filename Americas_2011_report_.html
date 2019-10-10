@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Sonia Mazzi - Data Science Campus" />
+
+<meta name="date" content="2019-09-26" />
+
+<title>Report on HIV prevalence in Americas , 2011</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore"><strong>Report on HIV prevalence in Americas , 2011</strong></h1>
+<h4 class="author">Sonia Mazzi - Data Science Campus</h4>
+<h4 class="date">26 September 2019</h4>
+
+</div>
+
+
+<div id="introduction" class="section level1">
+<h1><span class="header-section-number">1</span> Introduction</h1>
+<p>Prevalence is a measure of disease that allows us to determine a person’s likelihood of having a disease. The number of prevalent cases is the total number of cases of disease existing in a population. A prevalence rate is the total number of cases of a disease existing in a population divided by the total population. So, if a measurement of cancer is taken in a population of 40,000 people and 1,200 were recently diagnosed with cancer and 3,500 are living with cancer, then the prevalence of cancer is 0.1175. (11.75% or 11,750 per 100,000 persons)</p>
+<p>Using data from Gapminder we look at the latest figures on HIV prevalence in .</p>
+</div>
+<div id="the-data" class="section level1">
+<h1><span class="header-section-number">2</span> The Data</h1>
+<p>The data was obtained from Gapminder.org and consists of estimated yearly HIV Prevalence, in percentages, for people aged 15-49.</p>
+<p>The data from 1990 onwards is from UNAIDS, but Gapminder has provided extra estimates for some countries before 1990. Data for Brazil is the average of the high and low estimate from UNAIDS from 1990 onwards, and 1979 is the estimate from Gapminder Foundation.</p>
+</div>
+<div id="plots" class="section level1">
+<h1><span class="header-section-number">3</span> Plots</h1>
+<div id="plot-of-hiv-prevalence-vs-gdp-per-capita-for-year-2011." class="section level2">
+<h2><span class="header-section-number">3.1</span> Plot of HIV prevalence vs GDP per capita for year 2011.</h2>
+<p>This is a plot of HIV prevalence vs GDP per capita (ppp-adjusted).</p>
+<div class="figure" style="text-align: center">
+<img src="Americas_2011_report__files/figure-html/unnamed-chunk-13-1.png" alt="Figure caption" width="672" />
+<p class="caption">
+Figure caption
+</p>
+</div>
+</div>
+<div id="a-time-plot-of-the-percentual-change-of-hiv-prevalence-since-2000-for-countries-with-an-exceptionally-high-level-of-hiv-prevalence" class="section level2">
+<h2><span class="header-section-number">3.2</span> A time plot of the percentual change of HIV prevalence since 2000, for countries with an exceptionally high level of HIV prevalence</h2>
+<p>We consider countries with elevated HIV prevalence ( <span class="math inline">\(\ge\)</span> 1) relative to the other countries in the continent.</p>
+<p>Any point below the horizontal line at zero indicate that HIV prevalence has decreased from the previous year. Points at the horizontal zero-line indicate that HIV prevalence hasn’t changed from the previous year. Points above the horizontal zero-line indicate a growth in HIV prevalence from the previous year.</p>
+<div class="figure" style="text-align: center">
+<img src="Americas_2011_report__files/figure-html/unnamed-chunk-16-1.png" alt="Figure caption" width="864" />
+<p class="caption">
+Figure caption
+</p>
+</div>
+</div>
+<div id="a-map-of-americas-with-countries-coloured-according-to-hiv-prevalence-in-2011." class="section level2">
+<h2><span class="header-section-number">3.3</span> A map of Americas with countries coloured according to HIV prevalence in 2011.</h2>
+<div class="figure" style="text-align: center">
+<img src="Americas_2011_report__files/figure-html/unnamed-chunk-19-1.png" alt="Figure caption" width="768" />
+<p class="caption">
+Figure caption
+</p>
+</div>
+<div class="figure" style="text-align: center">
+<img src="Americas_2011_report__files/figure-html/unnamed-chunk-23-1.png" alt="Figure caption" width="768" />
+<p class="caption">
+Figure caption
+</p>
+</div>
+</div>
+</div>
+<div id="conclusions" class="section level1">
+<h1><span class="header-section-number">4</span> Conclusions</h1>
+<p>This will only print if continent is Americas.</p>
+<p><br></p>
+<p><br></p>
+<hr />
+<center>
+<img src="dsclogo.png" style="width:20.0%" />
+</center>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

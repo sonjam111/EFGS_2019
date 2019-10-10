@@ -1,0 +1,13 @@
+---
+title: "Produce all 4 HIV reports"
+output: html_notebook
+---
+
+This is the code to produce all 4 HIV reports
+
+```{r message=FALSE, warning=FALSE, eval=FALSE}
+continents <- c("Asia", "Europe", "Africa", "Americas")
+year <- 2011
+source("render_report.R")
+purrr::walk(continents, render_report)
+```

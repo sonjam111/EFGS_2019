@@ -1,0 +1,347 @@
+---
+params: 
+  current_continent: Americas
+  year: 2011
+  data_file: hiv_wb_new.xlsx
+title: "**`r paste('Report on HIV prevalence in', params$current_continent,', ', params$year)`**"
+author: Sonia Mazzi - Data Science Campus
+description: "An example of a reproducible report, from data importing, tidying, and cleaning, analysing to publishing with rmarkdown"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: yeti
+    highlight: haddock
+    number_sections: TRUE
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+## Required libraries
+library(openxlsx)
+library(readxl)
+library(ggplot2)
+library(ggrepel)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(openxlsx)
+library(readr)
+library(stringr)
+library(maps)
+```
+
+
+```{r}
+#Now we will read in all worksheets and combine them into a single table, stacking the tables for each year.
+#excel workbook file name is fn
+#fn = "hiv_wb.xlsx"
+fn <- params$data_file
+combined_data <- 
+  excel_sheets(fn) %>% 
+  map_df(~ {read_excel(fn, sheet = .x, skip = 4, trim_ws = TRUE) %>% 
+      mutate(year = as.integer(.x))}) %>% select(country, year, everything())
+```
+
+```{r}
+#add geographical data
+fng <- "DataGeographiesGapminder.xlsx"
+geo_dat <- read_excel(fng, sheet = 2)
+geo_data <- geo_dat %>% select(country = name, geo, four_regions)
+hiv_full <- inner_join(combined_data, geo_data)
+hiv_full <- hiv_full %>% select(country, geo, continent = four_regions, everything())
+```
+
+```{r}
+#add percentual change
+  hiv_full <- hiv_full  %>% group_by(country) %>% 
+  arrange(year, .by_group = TRUE) %>%
+  mutate(pct_chg_prevalence = ifelse( lag(hiv_prevalence)!= 0, ((hiv_prevalence/lag(hiv_prevalence)-1)*100), NA))
+```
+
+```{r}
+#change some country names for maps
+hiv_full <- hiv_full %>% 
+  mutate(country_mod = replace(country, country == "Congo, Dem. Rep.", "Democratic Republic of the Congo")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Cote d'Ivoire", "Ivory Coast")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Congo, Rep.", "Republic of Congo")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Holy See", "Vatican")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Slovak Republic", "Slovakia")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Macedonia, FYR", "Macedonia")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "United Kingdom", "UK")) %>%
+  mutate(country_mod = replace(country_mod, country_mod == "Antigua and Barbuda", "Antigua")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "St. Kitts and Nevis", "Saint Kitts")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "St. Lucia", "Saint Lucia")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "St. Vincent and the Grenadines", "Saint Vincent")) %>%
+  mutate(country_mod = replace(country_mod, country_mod == "Trinidad and Tobago", "Trinidad")) %>%
+  mutate(country_mod = replace(country_mod, country_mod == "United States", "USA")) %>%
+  mutate(country_mod = replace(country_mod, country_mod == "Kyrgyz Republic", "Kyrgyzstan")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Lao", "Laos")) %>% 
+  mutate(country_mod = replace(country_mod, country_mod == "Micronesia, Fed. Sts.", "Micronesia")) %>% 
+  ungroup() %>%
+  select(-country) %>% 
+  mutate(country = country_mod) %>%
+  select(-country_mod)
+```
+
+```{r}
+#capitalise the first letter of the continent names
+hiv_full <- hiv_full %>% 
+  mutate(continent = str_replace_all(continent, "africa", "Africa")) %>%
+  mutate(continent = str_replace_all(continent, "europe", "Europe")) %>%
+  mutate(continent = str_replace_all(continent, "asia", "Asia")) %>%
+  mutate(continent = str_replace_all(continent, "americas", "Americas"))
+```
+
+```{r}
+latest_year <- max(hiv_full$year)
+current_continent = params$current_continent
+```
+
+
+# Introduction
+
+Prevalence is a measure of disease that allows us to determine a person's likelihood of having a disease. The number of prevalent cases is the total number of cases of disease existing in a population. A prevalence rate is the total number of cases of a disease existing in a population divided by the total population. So, if a measurement of cancer is taken in a population of 40,000 people and 1,200 were recently diagnosed with cancer and 3,500 are living with cancer, then the prevalence of cancer is 0.1175. (11.75\% or 11,750 per 100,000 persons)
+
+Using data from Gapminder we look at the latest figures on HIV prevalence in `r params$continent`.
+
+# The Data
+
+The data was obtained from Gapminder.org and consists of 
+estimated yearly HIV Prevalence, in percentages, for people aged 15-49.
+
+The data from 1990 onwards is from UNAIDS, but Gapminder has provided extra estimates for some countries before 1990.
+Data for Brazil is the average of the high and low estimate from UNAIDS from 1990 onwards, and 1979 is the estimate from Gapminder Foundation.		
+
+
+
+# Plots
+```{r}
+latest_year <- max(hiv_full$year)
+current_continent <- params$current_continent
+```
+
+
+
+## Plot of HIV prevalence vs GDP per capita for year `r latest_year`.
+
+This is a plot of HIV prevalence vs GDP per capita (ppp-adjusted).
+
+```{r}
+#lower bounds for high levels of hiv
+hi_hiv <- ifelse(current_continent == "Africa", 10,
+                 ifelse(current_continent == "Europe", 0.5, 
+                        ifelse(current_continent == "Americas", 1, 
+                         ifelse(current_continent == "Asia", 0.5, NA))))
+```       
+
+```{r}
+max_long <- ifelse(current_continent == "Americas", 0, 
+                   ifelse(current_continent == "Asia", 170, NA))
+```
+
+```{r}
+min_long <- ifelse(current_continent == "Americas", -165, 
+                   ifelse(current_continent == "Asia", 0, NA))
+```
+
+```{r}
+min_lat <- ifelse(current_continent == "Asia", -45, NA)
+```
+
+```{r fig.align="center", fig.width=7, fig.height=7, fig.cap="Figure caption"}
+hlhiv <- hiv_full %>% filter(continent == current_continent, year == latest_year, hiv_prevalence >= hi_hiv)
+hiv_full %>% 
+  filter(continent == current_continent, year == latest_year) %>% 
+  drop_na() %>% 
+  ggplot(aes(x = income, y = hiv_prevalence)) +
+  geom_point(aes(size = population), alpha = 0.5) +
+  geom_text_repel(data = hlhiv , aes(label = country, color = "black"), col = "black", size = 3, segment.alpha = 0.8) +
+  labs(x = "GDP per capita (PPP adjusted)", y = "HIV prevalence (%)") +
+  theme(axis.text.x = element_text(color = "black", size = 5, angle = 0)) 
+```
+
+
+
+## A time plot of the  percentual change of HIV prevalence since 2000, for countries with an exceptionally high level of HIV prevalence
+
+
+We consider countries with elevated HIV prevalence ( $\ge$ `r hi_hiv`) relative to the other countries in the continent.
+
+Any point below the horizontal line at zero indicate that HIV prevalence has decreased from the previous year. Points at the horizontal zero-line indicate that HIV prevalence hasn't changed from the previous year. Points above the horizontal zero-line indicate a growth in HIV prevalence from the previous year.  
+
+```{r warning = FALSE}
+datos <- hiv_full %>% filter(hiv_prevalence >= hi_hiv, year >= 2000, continent == current_continent)
+#
+hiv_pct_chg_plot <- ggplot(datos, aes(x = year, y = pct_chg_prevalence, color = country)) +
+  geom_line() +
+  geom_point(aes(size = hiv_prevalence), alpha = 0.2) +
+  labs(x = "Year", y = "% change (from previous year) in HIV prevalence") +
+  scale_x_continuous(limits = c(1999, latest_year), breaks = 2000:latest_year) +
+  geom_text_repel(data = filter(datos, year==2000) , aes(label = geo), col = "black", size = 3, segment.alpha = 0.7, direction = "y", nudge_x = -1.2)
+```
+
+
+```{r fig.align="center", fig.width=9, fig.height=7, fig.cap="Figure caption"}
+if(current_continent == "Africa"){
+  print(hiv_pct_chg_plot + 
+          geom_text_repel(data = filter(datos, year == 2002, country == "Mozambique") , aes(label = geo), col = "black", size = 3, segment.alpha = 0.7, direction = "y", nudge_x = -1.2))}
+```
+
+```{r fig.align="center", fig.width=9, fig.height=7, fig.cap="Figure caption"}
+if(current_continent == "Americas"){
+  print(hiv_pct_chg_plot + 
+          geom_text_repel(data = filter(datos, year == 2006, country == "Barbados") , aes(label = geo), col = "black", size = 3, segment.alpha = 0.7, direction = "y", nudge_x = -1.2))
+  }
+```
+
+```{r fig.align="center", fig.width=9, fig.height=7, fig.cap="Figure caption"}
+if(current_continent == "Asia"){
+  print(hiv_pct_chg_plot + 
+          geom_text_repel(data = filter(datos, year == 2001, country == "Papua New Guinea") , aes(label = geo), col = "black", size = 3, segment.alpha = 0.7, direction = "y", nudge_x=-1.2) +
+          geom_text_repel(data = filter(datos, year == 2005, country == "Malaysia") , aes(label=geo), col = "black", size = 3, segment.alpha = 0.7, direction = "y", nudge_x = -1.2))
+  }
+```
+
+```{r fig.align="center", fig.width=9, fig.height=7, fig.cap="Figure caption"}
+if(current_continent == "Europe"){
+  print(hiv_pct_chg_plot + 
+          geom_text_repel(data = filter(datos, year == 2001, country %in% c("Russia", "Portugal")) , aes(label = geo), col = "black", size = 3, segment.alpha = 0.7, direction = "y", nudge_x = -1.2))
+  }
+```
+
+
+## A map of `r current_continent` with countries coloured according to HIV prevalence in `r latest_year`.
+
+
+```{r fig.align="center", fig.width=8, fig.height=8, fig.cap="Figure caption"}
+hiv_latest_year <- hiv_full %>% 
+  filter(year == latest_year, continent == current_continent)
+current_continent_countries <- hiv_latest_year %>% 
+  pull(country)
+#
+cols <- c("NA"="gray")
+max_hiv <- max(hiv_latest_year$hiv_prevalence)
+#
+hiv_data <- map_data("world") %>% 
+  filter(region %in% current_continent_countries) %>% 
+  mutate(country = region) %>% 
+  left_join(hiv_latest_year) 
+if(current_continent %in% c("Americas", "Asia")){hiv_data <- hiv_data %>% filter(long >= min_long, long <= max_long)}
+if(current_continent == "Asia"){hiv_data <- hiv_data %>% filter(lat >= min_lat)}
+#
+hiv_geos <- hiv_data %>% 
+  select(geo, lat, long) %>% 
+  group_by(geo) %>% 
+  summarise(mean_lat = mean(range(lat)), mean_long = mean(range(long)))
+#
+  ggplot(hiv_data) + 
+  geom_polygon(aes(x = long, y = lat, fill = hiv_prevalence, group = group), color = NA) + 
+  geom_text_repel(data = hiv_geos, aes(x = mean_long, y = mean_lat, label = geo), size = 2, direction = "x", segment.alpha = 0.2) +  
+  coord_quickmap() +
+  scale_fill_gradient2(low="brown3", mid = "cornsilk1", high = "turquoise4", limits = c(0,max_hiv), na.value="grey") +
+  scale_colour_manual(values = NA) +              
+  guides(colour=guide_legend("No data", override.aes = list(colour = "grey"))) +
+  guides(fill=guide_legend(title="HIV prevalence")) +
+  theme_void()
+```
+
+
+
+```{r}
+#plot Europe without Russia
+hiv_latest_year <- hiv_full %>% 
+  filter(year == latest_year, continent == current_continent, country != "Russia")
+#
+max_hiv <- max(hiv_latest_year$hiv_prevalence)
+#
+current_continent_countries <- hiv_latest_year %>% pull(country)
+#
+max_lat <- 72
+#
+datos_map <- map_data("world") %>% 
+  filter(region %in% current_continent_countries, lat <= max_lat) %>% 
+  mutate(country = region) %>% 
+  left_join(hiv_latest_year)
+#
+cols <- c("NA" = "gray")
+#
+hiv_geos <- datos_map %>% 
+  select(geo, lat, long) %>% 
+  group_by(geo) %>% 
+  summarise(mean_lat = mean(range(lat), trim=0.4), mean_long = mean(range(long), trim = 0.4))
+#
+
+plot_western_europe <- ggplot(data = datos_map) + 
+  geom_polygon(aes(x = long, y = lat, fill = hiv_prevalence, group = group), color = NA) + 
+  coord_quickmap() +
+  geom_text_repel(data = hiv_geos, aes(x = mean_long, y = mean_lat, label = geo), size = 2, direction = "x", segment.alpha = 0.2) +  
+  scale_fill_gradient2(low = "brown3", mid = "cornsilk1", high = "turquoise4", limits = c(0, max_hiv), na.value = "gray") +
+  scale_colour_manual(values = NA) +              
+  guides(colour=guide_legend("No data", override.aes = list(colour = "gray"))) +
+  guides(fill = guide_legend(title = "HIV prevalence")) +
+  theme_void() + 
+  ggtitle("Europe without Russia")  
+```
+
+```{r fig.align = "center", fig.width = 7, fig.height = 7, fig.cap = "Figure caption"}
+if(current_continent == "Europe"){print(plot_western_europe)} 
+```
+
+
+```{r}
+#The Caribbean
+hiv_latest_year = hiv_full %>% filter(year == latest_year, continent == current_continent)
+current_continent_countries = hiv_latest_year %>% pull(country)
+#
+cont <- map_data("world") %>% 
+  filter(region %in% current_continent_countries, long <= -50, long >= -95, lat >= 0, lat <= 25) %>% 
+  mutate(country = region) %>% 
+  left_join(hiv_latest_year)
+#
+hiv_geos <- cont %>% 
+  select(geo, lat, long) %>% 
+  group_by(geo) %>% 
+  summarise(mean_lat = mean(range(lat), trim = 0.4), mean_long = mean(range(long), trim = 0.4))
+#
+cols= c("NA" = "gray")
+#
+plot_caribbean <- ggplot(data = cont) + 
+  geom_polygon(aes(x = long, y = lat, fill = hiv_prevalence, group = group), color = NA) + 
+  coord_quickmap() +
+  geom_text_repel(data = hiv_geos, aes(x = mean_long, y = mean_lat, label=geo), size = 2, direction = "x", segment.alpha = 0.2) +  
+  scale_fill_gradient2(low = "brown3", mid = "cornsilk1", high = "turquoise4", limits = c(0, 3), na.value = "gray") +
+  scale_colour_manual(values = NA) +              
+  guides(colour = guide_legend("No data", override.aes = list(colour = "gray"))) +
+  guides(fill = guide_legend(title = "HIV prevalence")) +
+  theme_void() +
+  ggtitle("HIV prevalence in Central America and the Caribbean region")
+```
+
+```{r fig.align = "center", fig.width = 8, fig.height = 8, fig.cap = "Figure caption"}
+if(current_continent == "Americas"){print(plot_caribbean)} 
+```
+
+# Conclusions
+
+`r if(current_continent == "Asia"){"This will only print if continent is Asia."}`
+
+`r if(current_continent == "Americas"){"This will only print if continent is Americas."}`
+
+`r if(current_continent == "Europe"){"This will only print if continent is Europe."}`
+
+`r if(current_continent == "Africa"){"This will only print if continent is Africa."}`
+
+<br>
+
+<br>
+
+***
+
+<center>
+ ![](dsclogo.png){width=20%}   
+</center>

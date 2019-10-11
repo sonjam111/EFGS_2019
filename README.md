@@ -1,7 +1,7 @@
 # EFGS_2019
 files for session 3 B Part 1
 
-hiv_report.Rmd contains a generic script to produce a report with info about HIV prevalence and other variables for a continent and year as sepcifie in the YAML header.
+hiv_report.Rmd contains a generic script to produce a report with info about HIV prevalence and other variables for a continent and year as specified in the YAML header.
 
 hiv_wb_new.xlsx is the data needed (Excel workbook)
 

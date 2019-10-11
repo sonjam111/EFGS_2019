@@ -3,7 +3,7 @@ title: "Produce all 4 HIV reports"
 output: html_notebook
 ---
 
-This is the code to produce all 4 HIV reports
+This is the code to produce all 4 HIV reports. Just run the chunk below by pressing the green "play button" in the upper right corner of the chunk greyed area.
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
 continents <- c("Asia", "Europe", "Africa", "Americas")

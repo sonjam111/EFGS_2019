@@ -107,7 +107,7 @@ current_continent = params$current_continent
 
 Prevalence is a measure of disease that allows us to determine a person's likelihood of having a disease. The number of prevalent cases is the total number of cases of disease existing in a population. A prevalence rate is the total number of cases of a disease existing in a population divided by the total population. So, if a measurement of cancer is taken in a population of 40,000 people and 1,200 were recently diagnosed with cancer and 3,500 are living with cancer, then the prevalence of cancer is 0.1175. (11.75\% or 11,750 per 100,000 persons)
 
-Using data from Gapminder we look at the latest figures on HIV prevalence in `r params$continent`.
+Using data from Gapminder we look at the latest figures on HIV prevalence in `r params$current_continent`.
 
 # The Data
 
